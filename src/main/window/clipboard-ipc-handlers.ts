@@ -27,12 +27,15 @@ import { writeFileToClipboard } from './clipboard-file-copy'
 
 let trustedClipboardRendererWebContentsId: number | null = null
 
+/** Set (or clear) the renderer webContents id trusted to invoke clipboard IPC. */
 export function setTrustedClipboardRendererWebContentsId(webContentsId: number | null): void {
   trustedClipboardRendererWebContentsId = webContentsId
 }
 
-// Run a short-lived OS clipboard helper (PowerShell / wl-copy / xclip), feeding
-// it stdin when provided; resolves only on a clean exit.
+/**
+ * Run a short-lived OS clipboard helper (PowerShell / wl-copy / xclip), feeding
+ * it stdin when provided; resolves only on a clean exit.
+ */
 function runCommand(command: string, args: string[], stdin?: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: ['pipe', 'ignore', 'ignore'] })
@@ -44,6 +47,7 @@ function runCommand(command: string, args: string[], stdin?: string): Promise<vo
   })
 }
 
+/** (Re)register all clipboard IPC handlers; `store` authorizes file paths before copying. */
 export function registerClipboardHandlers(store: Store): void {
   ipcMain.removeHandler('clipboard:readText')
   ipcMain.removeHandler('clipboard:readSelectionText')
@@ -151,12 +155,14 @@ export function registerClipboardHandlers(store: Store): void {
   })
 }
 
+/** Throw if the IPC event did not originate from the trusted renderer. */
 function assertTrustedClipboardSender(event: IpcMainInvokeEvent): void {
   if (!isTrustedClipboardRenderer(event.sender)) {
     throw new Error('Unauthorized clipboard IPC sender')
   }
 }
 
+/** Whether a webContents is the trusted renderer allowed to use clipboard IPC. */
 function isTrustedClipboardRenderer(sender: WebContents): boolean {
   if (sender.isDestroyed() || sender.getType() !== 'window') {
     return false

@@ -72,6 +72,7 @@ type CoreHandlerLifecycleOptions = {
   getAdditionalAiVaultCodexHomePaths?: () => readonly string[]
 }
 
+/** Register all core main-process IPC handlers (filesystem, git, clipboard, runtime, etc.). */
 export function registerCoreHandlers(
   store: Store,
   runtime: OrcaRuntimeService,

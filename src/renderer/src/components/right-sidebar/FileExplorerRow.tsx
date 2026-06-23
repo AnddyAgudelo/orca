@@ -314,6 +314,7 @@ export function shouldShowRemoteDownloadAction(
   )
 }
 
+/** Whether the "Copy file" action should appear: a single local file, desktop only. */
 export function shouldShowCopyFileAction(connectionId?: string | null, selectionSize = 1): boolean {
   // Why: the OS file clipboard only holds local files — remote (SSH) files
   // don't exist on this machine, and the web client has no native clipboard.
@@ -360,6 +361,7 @@ export async function downloadRemoteFile(node: TreeNode, connectionId: string): 
   }
 }
 
+/** A single row in the file explorer tree, with its inline rename input and context actions. */
 export function FileExplorerRow({
   node,
   isExpanded,
