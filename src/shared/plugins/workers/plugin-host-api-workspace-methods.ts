@@ -32,7 +32,9 @@ const workspaceListResult = z.object({
         path: z.string().max(ID_MAX),
         branch: z.string().max(512).nullable(),
         /** The execution host; null for this machine on hosts that do not record one. */
-        hostId: z.string().max(ID_MAX).nullable()
+        hostId: z.string().max(ID_MAX).nullable(),
+        createdAt: z.number().nullable(),
+        lastActivityAt: z.number().nullable()
       })
     )
     .max(PLUGIN_WORKSPACE_LIST_LIMIT),
@@ -105,7 +107,8 @@ const commandsRunResult = z.object({ ran: z.literal(true) })
 
 export const PLUGIN_WORKSPACE_ACTIONS_API = {
   'workspace.list': spec({
-    summary: 'Lists every workspace, Git worktrees and folders, on every host Orca reaches.',
+    summary:
+      'Lists every workspace, Git worktrees and folders, on every host Orca reaches. `createdAt` and `lastActivityAt` are epoch ms, null where Orca has no record (a main worktree has no `createdAt`); an older Orca omits them.',
     since: 3,
     scope: 'any-workspace',
     capability: 'workspace:read',

@@ -33,7 +33,7 @@ Methods whose capability is `none` need no capability but still need the plugin 
 | [`statusBar.update`](#statusbarupdate) | none | worker | no | 1.2 | Changes one of the plugin's `contributes.statusBarItems` (named by `id`): fields given replace their current value, `visible: false` hides it. Desktop app only; lasts until Orca restarts, and is hidden while the plugin is disabled. A plugin with `main` and status bar items has its worker started when it is enabled and kept running while it stays enabled, so a worker can poll and update its items without an event or a hook. |
 | [`appearance.read`](#appearanceread) | `appearance:write` | worker | no | 1.4 | Reads the current desktop appearance revision for a conditional update. |
 | [`appearance.apply`](#appearanceapply) | `appearance:write` | worker | yes | 1.4 | Publishes owned app/editor and terminal colors and selects them in the desktop. Returns publication, not renderer acknowledgement. |
-| [`workspace.list`](#workspacelist) | `workspace:read` | worker | no | 1.3 | Lists every workspace, Git worktrees and folders, on every host Orca reaches. |
+| [`workspace.list`](#workspacelist) | `workspace:read` | worker | no | 1.3 | Lists every workspace, Git worktrees and folders, on every host Orca reaches. `createdAt` and `lastActivityAt` are epoch ms, null where Orca has no record (a main worktree has no `createdAt`); an older Orca omits them. |
 | [`workspace.open`](#workspaceopen) | `workspace:write` | worker | yes | 1.3 | Shows a workspace in Orca, as clicking it in the sidebar does; a folder workspace needs the desktop app. |
 | [`terminal.create`](#terminalcreate) | `terminal:send` | worker | yes | 1.3 | Opens a terminal in a workspace, optionally running a command, in the background. |
 | [`terminal.read`](#terminalread) | `terminal:read` | worker | no | 1.3 | Reads a terminal's newest output as plain text, at most 2000 lines. |
@@ -211,10 +211,10 @@ Publishes owned app/editor and terminal colors and selects them in the desktop. 
 
 ### `workspace.list`
 
-Lists every workspace, Git worktrees and folders, on every host Orca reaches.
+Lists every workspace, Git worktrees and folders, on every host Orca reaches. `createdAt` and `lastActivityAt` are epoch ms, null where Orca has no record (a main worktree has no `createdAt`); an older Orca omits them.
 
 ```ts
-(params?: {}) => { workspaces: { id: string; kind: "worktree" | "folder"; name: string; path: string; branch: string | null; hostId: string | null }[]; truncated: boolean }
+(params?: {}) => { workspaces: { id: string; kind: "worktree" | "folder"; name: string; path: string; branch: string | null; hostId: string | null; createdAt: number | null; lastActivityAt: number | null }[]; truncated: boolean }
 ```
 
 ### `workspace.open`

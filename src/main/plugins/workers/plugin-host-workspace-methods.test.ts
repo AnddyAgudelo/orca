@@ -87,16 +87,19 @@ const worktree = (id: string, repoId: string, extra: Record<string, unknown> = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('workspace host actions', () => {
-  it('workspace.list names worktrees and folders, each with an id that names its host', async () => {
+  it('workspace.list names worktrees and folders, each with an id that names its host and its times', async () => {
     const { rpc, calls } = runtime({
       'worktree.list': {
         worktrees: [
           worktree('r1::/work/app', 'r1', {
             branch: 'refs/heads/main',
             hostId: 'ssh:box',
-            identity: { key: 'wt2:ssh%3Abox:i1' }
+            identity: { key: 'wt2:ssh%3Abox:i1' },
+            createdAt: 1_700_000_000_000,
+            lastActivityAt: 1_700_000_500_000
           }),
-          worktree('r2::/work/notes', 'r2', { branch: '' })
+          // Nothing recorded: no `createdAt`, and 0 is an unset `lastActivityAt`.
+          worktree('r2::/work/notes', 'r2', { branch: '', lastActivityAt: 0 })
         ],
         totalCount: 3,
         truncated: false
@@ -109,7 +112,14 @@ describe('workspace host actions', () => {
       },
       'folderWorkspace.list': {
         folderWorkspaces: [
-          { id: 'f1', name: 'home', folderPath: '/home/me', executionHostId: null }
+          {
+            id: 'f1',
+            name: 'home',
+            folderPath: '/home/me',
+            executionHostId: null,
+            createdAt: 1_600_000_000_000,
+            lastActivityAt: 1_600_000_100_000
+          }
         ]
       }
     })
@@ -118,9 +128,31 @@ describe('workspace host actions', () => {
       ok: true,
       value: {
         workspaces: [
-          { id: 'identity:wt2:ssh%3Abox:i1', kind: 'worktree', branch: 'main', hostId: 'ssh:box' },
-          { id: 'r2::/work/notes', kind: 'folder', branch: null, hostId: null },
-          { id: 'folder:f1', kind: 'folder', name: 'home', path: '/home/me', branch: null }
+          {
+            id: 'identity:wt2:ssh%3Abox:i1',
+            kind: 'worktree',
+            branch: 'main',
+            hostId: 'ssh:box',
+            createdAt: 1_700_000_000_000,
+            lastActivityAt: 1_700_000_500_000
+          },
+          {
+            id: 'r2::/work/notes',
+            kind: 'folder',
+            branch: null,
+            hostId: null,
+            createdAt: null,
+            lastActivityAt: null
+          },
+          {
+            id: 'folder:f1',
+            kind: 'folder',
+            name: 'home',
+            path: '/home/me',
+            branch: null,
+            createdAt: 1_600_000_000_000,
+            lastActivityAt: 1_600_000_100_000
+          }
         ],
         truncated: true
       }

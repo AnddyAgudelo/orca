@@ -160,10 +160,10 @@ declare module 'orca/host' {
       result: { revision: string; themeId: string; mode: "dark" | "light"; delivery: "published" }
       surfaces: "worker"
     }
-    /** Lists every workspace, Git worktrees and folders, on every host Orca reaches. Since host API 1.3. */
+    /** Lists every workspace, Git worktrees and folders, on every host Orca reaches. `createdAt` and `lastActivityAt` are epoch ms, null where Orca has no record (a main worktree has no `createdAt`); an older Orca omits them. Since host API 1.3. */
     "workspace.list": {
       params: Record<string, never> | undefined
-      result: { workspaces: { id: string; kind: "worktree" | "folder"; name: string; path: string; branch: string | null; hostId: string | null }[]; truncated: boolean }
+      result: { workspaces: { id: string; kind: "worktree" | "folder"; name: string; path: string; branch: string | null; hostId: string | null; createdAt: number | null; lastActivityAt: number | null }[]; truncated: boolean }
       surfaces: "worker"
     }
     /** Shows a workspace in Orca, as clicking it in the sidebar does; a folder workspace needs the desktop app. Since host API 1.3. */

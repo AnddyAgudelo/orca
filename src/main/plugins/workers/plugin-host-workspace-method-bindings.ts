@@ -26,6 +26,7 @@ const api = PLUGIN_HOST_API
 const DEFAULT_READ_LINES = 200
 
 // The parts of each runtime answer a host method reads; anything else is dropped.
+const timestamps = { createdAt: z.number().nullish(), lastActivityAt: z.number().nullish() }
 const worktreeListAnswer = z.object({
   worktrees: z.array(
     z.object({
@@ -35,7 +36,8 @@ const worktreeListAnswer = z.object({
       path: z.string(),
       branch: z.string().optional(),
       hostId: z.string().optional(),
-      identity: z.object({ key: z.string() }).optional()
+      identity: z.object({ key: z.string() }).optional(),
+      ...timestamps
     })
   ),
   totalCount: z.number().optional(),
@@ -50,7 +52,8 @@ const folderListAnswer = z.object({
       id: z.string(),
       name: z.string(),
       folderPath: z.string(),
-      executionHostId: z.string().nullable().optional()
+      executionHostId: z.string().nullable().optional(),
+      ...timestamps
     })
   )
 })
@@ -104,6 +107,11 @@ function branchName(branch: string | undefined): string | null {
   return name || null
 }
 
+/** Orca stores an unset `lastActivityAt` as 0, and omits `createdAt` for workspaces it did not create. */
+function recordedTimes(row: { createdAt?: number | null; lastActivityAt?: number | null }) {
+  return { createdAt: row.createdAt || null, lastActivityAt: row.lastActivityAt || null }
+}
+
 export const PLUGIN_WORKSPACE_ACTION_HANDLERS = {
   'workspace.list': bind(api['workspace.list'], async (_params, { services }) => {
     const call = rpc(services)
@@ -127,7 +135,8 @@ export const PLUGIN_WORKSPACE_ACTION_HANDLERS = {
         name: worktree.displayName,
         path: worktree.path,
         branch: folder ? null : branchName(worktree.branch),
-        hostId: worktree.hostId ?? null
+        hostId: worktree.hostId ?? null,
+        ...recordedTimes(worktree)
       }
     })
     // Project-group folders have no repo row; their key is what selectors take.
@@ -137,7 +146,8 @@ export const PLUGIN_WORKSPACE_ACTION_HANDLERS = {
       name: folder.name,
       path: folder.folderPath,
       branch: null,
-      hostId: folder.executionHostId ?? null
+      hostId: folder.executionHostId ?? null,
+      ...recordedTimes(folder)
     }))
     const room = PLUGIN_WORKSPACE_LIST_LIMIT - worktreeRows.length
     return {
